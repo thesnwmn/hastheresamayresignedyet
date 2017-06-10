@@ -2,6 +2,8 @@
 <head>
   <title>Theresa May's job status</title>
   <link rel="shortcut icon" href="http://hastheresamayresignedyet.com/favicon.ico" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html, body {
     height: 100%;
@@ -10,24 +12,70 @@ html, body {
     font-family: arial;
     margin: 0;
 }
-.parent {
+.top {
+    position: absolute;
     width: 100%;
-    height: 100%;
+    top: 0;
+    height: 60%;
     display: table;
     text-align: center;
 }
-.parent > .child {
+.bottom {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    height: 40%;
+    display: table;
+    text-align: center;
+    padding-bottom: 1.7em;
+}
+.top > .child {
     display: table-cell;
     vertical-align: middle;
+}
+.news {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+.news-details {
+    position: relative;
+    display: inline-block;
+    width: 280px;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+.news-nav {
+    position: absolute;
+    display: table-cell;
+    vertical-align: middle;
+    height: 100%;
+    width: 24px;
+    cursor: pointer;
+}
+.news-prev {
+    background: url("icons/arrow-left-16.png") no-repeat 50% 50%;
+    left: 0;
+}
+.news-next {
+    background: url("icons/arrow-right-16.png") no-repeat 50% 50%;
+    right: 0;
+}
+.news-title {
+    display: block;
+    font-size: 1.3em;
+}
+.hidden {
+    display: none;
+}
+.status {
     font-size: 6em;
 }
-.footer {
+.links {
     position: fixed;
     text-align: center;
     font-size: 1.2em;
-    bottom: 1em;
-    left: 0;
-    right: 0;
+    bottom: 0.5em;
+    width: 100%;
 }
 .spacing {
     margin: 0 30px;
@@ -35,25 +83,102 @@ html, body {
 img {
     vertical-align: middle;
 }
-a, a:active, a:hover, a:focus, a:visited {
+a {
+    cursor: pointer;
     text-decoration: none;
+    color: #ffffff;
+}
+a:active, a:hover, a:focus, a:visited {
+    text-decoration: underline;
     color: #ffffff;
 }
 </style>
 </head>
 <body>
-  <div class="parent">
-    <div class="child">
+  <div class="top centered">
+    <div class="child status">
       No
     </div>
   </div>
-  <div class="footer">
-      <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fhastheresamayresignedyet.com&url=http%3A%2F%2Fwww.hastheresamayresignedyet.com"><img src="icons/twitter-24.png"/></a>
-      <a href="https://twitter.com/politicalfancy" class="spacing">@politicalfancy</a>
-      <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A//hastheresamayresignedyet.com"><img src="icons/facebook-24.png"/></a>
+  <div class="bottom centered">
+      <div class="child">
+          <div class="news">
+              <div class="news-details">
+                  <div class="news-nav news-prev"></div>
+                  <div class="news-nav news-next"></div>
+                  <div class="news-date"></div>
+              </div>
+                  <a class="news-title" target="_blank"></a>
+          </div>
+      </div>
+  </div>
+  <div class="links">
+      <a target="_blank" href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fhastheresamayresignedyet.com&url=http%3A%2F%2Fwww.hastheresamayresignedyet.com"><img src="icons/twitter-24.png"/></a>
+      <a target="_blank" href="https://twitter.com/politicalfancy" class="spacing">@politicalfancy</a>
+      <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http%3A//hastheresamayresignedyet.com"><img src="icons/facebook-24.png"/></a>
   </div>
 </body>
-  <script>
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+<script type='text/javascript'>
+
+document.querySelector(".news").classList.add("hidden");
+
+var publicSpreadsheetUrl = "https://docs.google.com/spreadsheets/d/1aMvYvDl9q3L7WUVYd7pEIOMS4C_04o75o3yZWQPJc98/pubhtml";
+
+var newsPrev = document.querySelector(".news-prev");
+var newsNext = document.querySelector(".news-next");
+var newsTitle = document.querySelector(".news-title");
+var newsDate = document.querySelector(".news-date");
+
+function init() {
+    Tabletop.init({
+        key: publicSpreadsheetUrl,
+        callback: showInfo,
+        simpleSheet: true
+    });
+}
+
+function showInfo(data, tabletop) {
+
+    var stories = data.length;
+    var curIndex = data.length - 1;
+
+    function updateNews() {
+        if (curIndex <= 0) {
+            curIndex = 0;
+            newsPrev.classList.add("hidden");
+        } else {
+            newsPrev.classList.remove("hidden");
+        }
+        if (curIndex >= stories-1) {
+            curIndex = stories - 1;
+            newsNext.classList.add("hidden");
+        } else {
+            newsNext.classList.remove("hidden");
+        }
+        newsTitle.textContent = data[curIndex].title;
+        newsTitle.href = data[curIndex].link;
+        newsDate.textContent = data[curIndex].timestamp;
+    }
+
+    updateNews();
+
+    newsPrev.addEventListener("click", function() {
+        curIndex--;
+        updateNews();
+    });
+
+    newsNext.addEventListener("click", function() {
+        curIndex++;
+        updateNews();
+    });
+
+    document.querySelector(".news").classList.remove("hidden");
+}
+
+window.addEventListener('DOMContentLoaded', init)
+</script>
+<script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -63,5 +188,4 @@ a, a:active, a:hover, a:focus, a:visited {
   ga('send', 'pageview');
 
 </script>
-
 </html>
